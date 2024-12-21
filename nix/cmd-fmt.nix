@@ -11,6 +11,9 @@
         stylua.enable = true;
       };
 
+      settings.formatter = {
+        just.includes = ["*/.justfile"];
+      };
       settings.global.excludes = [".envrc" "LICENSE" "*.kdl" "*.toml"];
     };
   };

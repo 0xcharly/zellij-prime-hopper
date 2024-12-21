@@ -14,4 +14,4 @@ dev:
     zellij --layout .config/dev.kdl
 
 build *flavor="":
-  cargo build {{ flavor }}
+    cargo build {{ flavor }}
