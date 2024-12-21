@@ -1,3 +1,4 @@
 target/
+.config/launch-debug.kdl
 .justfile.incl
 .pre-commit-config.yaml

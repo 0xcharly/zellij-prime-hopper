@@ -51,9 +51,25 @@
               '')
               recipes);
         };
+        plugin_location = "file:./github.com/0xcharly/zellij-prime-hopper/target/wasm32-wasip1/debug/zellij-prime-hopper.wasm";
+        launchDebugPlugin = pkgs.writeTextFile {
+          name = "launch-primehopper.kdl";
+          text = ''
+            layout {
+              floating_panes {
+                pane {
+                  plugin location="${plugin_location}" {
+                    startup_message_name "scan_repository_root"
+                  }
+                }
+              }
+            }
+          '';
+        };
       in ''
         ${config.pre-commit.installationScript}
         ln -sf ${builtins.toString commonJustfile} ./.justfile.incl
+        ln -sf ${builtins.toString launchDebugPlugin} ./.config/launch-debug.kdl
       '';
     };
   };

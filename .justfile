@@ -13,7 +13,7 @@ dev:
 
 [doc('Start a Zellij session with the plugin loaded')]
 launch:
-    zellij --layout share/launch-sessionizer.kdl options --default-cwd $HOME/code
+    zellij --layout .config/launch-debug.kdl options --default-cwd $HOME/code
 
 build *flavor="":
     cargo build --target=wasm32-wasip1 {{ flavor }}
