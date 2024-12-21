@@ -6,7 +6,10 @@
     pkgs,
     ...
   }: {
-    overlayAttrs.default = config.packages;
+    overlayAttrs = {
+      default = config.packages;
+      zellij-prime-hopper = config.packages.default;
+    };
     packages.default = pkgs.callPackage ./mk-zellij-prime-hopper.nix {};
   };
 }
