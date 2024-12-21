@@ -49,8 +49,8 @@ in
 
     buildPhase = ''
       runHook preBuild
-      cargo build --manifest-path $src/Cargo.toml --release --target=wasm32-wasip1
-      cargo build --manifest-path $src/find-git-repositories/Cargo.toml --release
+      cargo build --manifest-path ./Cargo.toml --release --target=wasm32-wasip1
+      cargo build --manifest-path ./find-git-repositories/Cargo.toml --release
       runHook postBuild
     '';
 
