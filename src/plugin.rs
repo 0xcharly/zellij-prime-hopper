@@ -267,10 +267,12 @@ impl PrimeHopperPlugin {
             ),
             "unsupported message received from own background worker"
         );
-        let RepositoryCrawlerResponse { repository } = deserialize(&payload)
+        let RepositoryCrawlerResponse { repositories } = deserialize(&payload)
             .with_context(|| "deserializing response from `file_system` worker")?;
 
-        Ok(self.context.add_choice(repository.into()))
+        Ok(self
+            .context
+            .add_choices(repositories.into_iter().map(Into::<PathEntry>::into)))
     }
 
     #[cfg(feature = "zellij_fallback_fs_api")]

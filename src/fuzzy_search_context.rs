@@ -1,13 +1,16 @@
+use crate::{
+    core::{InternalError, PluginError, PluginUpdateLoop},
+    matcher::{Choice, Match},
+};
+
+use std::collections::BTreeSet;
 use std::{
-    collections::BTreeSet,
     path::PathBuf,
     rc::{Rc, Weak},
 };
 
-use crate::{
-    core::{InternalError, PluginError, PluginUpdateLoop},
-    matcher::{Choice, FuzzyMatcher, Match},
-};
+use fuzzy_matcher::skim::SkimMatcherV2;
+use fuzzy_matcher::FuzzyMatcher as _;
 
 #[derive(Default, Eq, Ord, PartialEq, PartialOrd)]
 pub(super) struct PathEntry {
@@ -41,6 +44,34 @@ impl Choice for PathEntry {
             .unwrap_or(&self.path)
             .to_str()
             .unwrap_or_else(|| todo!("Replace non-UTF8 characters with �"))
+    }
+}
+
+struct FuzzyMatcher {
+    matcher: SkimMatcherV2,
+}
+
+impl Default for FuzzyMatcher {
+    fn default() -> Self {
+        Self {
+            matcher: SkimMatcherV2::default().use_cache(true),
+        }
+    }
+}
+
+impl FuzzyMatcher {
+    fn apply<C: Choice>(&self, input: &str, choices: &BTreeSet<Rc<C>>) -> Vec<Match<C>> {
+        choices
+            .iter()
+            .filter_map(|choice| {
+                self.matcher
+                    .fuzzy_indices(choice.repr(), input)
+                    .map(|(_score, indices)| Match {
+                        indices,
+                        choice: Rc::downgrade(choice),
+                    })
+            })
+            .collect()
     }
 }
 
@@ -94,15 +125,15 @@ pub(crate) struct FuzzySearchContext {
 }
 
 impl FuzzySearchContext {
-    pub fn user_input(&self) -> &str {
+    pub(super) fn user_input(&self) -> &str {
         &self.user_input
     }
 
-    pub fn selected_index(&self) -> usize {
+    pub(super) fn selected_index(&self) -> usize {
         self.selected_index
     }
 
-    pub fn selected_match(&mut self) -> Option<Rc<PathEntry>> {
+    pub(super) fn selected_match(&mut self) -> Option<Rc<PathEntry>> {
         // TODO: Use self.selected_match which should keep track of the selected item in a more
         // stable fashion.
         //self.selected_match
@@ -119,7 +150,7 @@ impl FuzzySearchContext {
         selected_match.choice.upgrade()
     }
 
-    pub fn on_user_input(&mut self, ch: char) -> PluginUpdateLoop {
+    pub(super) fn on_user_input(&mut self, ch: char) -> PluginUpdateLoop {
         self.clear_errors();
         self.user_input.push(ch);
 
@@ -130,7 +161,7 @@ impl FuzzySearchContext {
         PluginUpdateLoop::MarkDirty
     }
 
-    pub fn remove_trailing_char(&mut self) -> PluginUpdateLoop {
+    pub(super) fn remove_trailing_char(&mut self) -> PluginUpdateLoop {
         let update = self.clear_errors();
 
         if self.user_input.pop().is_some() {
@@ -141,7 +172,7 @@ impl FuzzySearchContext {
         update
     }
 
-    pub fn clear_user_input(&mut self) -> PluginUpdateLoop {
+    pub(super) fn clear_user_input(&mut self) -> PluginUpdateLoop {
         let update = self.clear_errors();
 
         if self.user_input.is_empty() {
@@ -153,7 +184,7 @@ impl FuzzySearchContext {
         PluginUpdateLoop::MarkDirty
     }
 
-    pub fn select_up(&mut self) -> PluginUpdateLoop {
+    pub(super) fn select_up(&mut self) -> PluginUpdateLoop {
         let update = self.clear_errors();
         let previous_index = self.selected_index;
         self.selected_index = self
@@ -163,7 +194,7 @@ impl FuzzySearchContext {
         update | PluginUpdateLoop::from(previous_index != self.selected_index)
     }
 
-    pub fn select_down(&mut self) -> PluginUpdateLoop {
+    pub(super) fn select_down(&mut self) -> PluginUpdateLoop {
         let update = self.clear_errors();
         let previous_index = self.selected_index;
         self.selected_index = self
@@ -173,14 +204,18 @@ impl FuzzySearchContext {
         update | PluginUpdateLoop::from(previous_index != self.selected_index)
     }
 
-    pub fn add_choice(&mut self, choice: PathEntry) -> PluginUpdateLoop {
+    #[cfg(feature = "zellij_fallback_fs_api")]
+    pub(super) fn add_choice(&mut self, choice: PathEntry) -> PluginUpdateLoop {
         self.choices.insert(choice.into());
         self.invalidate_matches();
 
         PluginUpdateLoop::MarkDirty
     }
 
-    pub fn add_choices(&mut self, choices: impl Iterator<Item = PathEntry>) -> PluginUpdateLoop {
+    pub(super) fn add_choices(
+        &mut self,
+        choices: impl Iterator<Item = PathEntry>,
+    ) -> PluginUpdateLoop {
         self.choices
             .extend(choices.map(Into::<Rc<PathEntry>>::into));
         self.invalidate_matches();
@@ -188,19 +223,19 @@ impl FuzzySearchContext {
         PluginUpdateLoop::MarkDirty
     }
 
-    pub(crate) fn choice_count(&self) -> usize {
+    pub(super) fn choice_count(&self) -> usize {
         self.choices.len()
     }
 
-    pub(crate) fn match_count(&self) -> usize {
+    pub(super) fn match_count(&self) -> usize {
         self.matches.len()
     }
 
-    pub(crate) fn matches(&self) -> impl Iterator<Item = &Match<PathEntry>> {
+    pub(super) fn matches(&self) -> impl Iterator<Item = &Match<PathEntry>> {
         self.matches.iter()
     }
 
-    pub(crate) fn log_error(&mut self, error: PluginError) -> PluginUpdateLoop {
+    pub(super) fn log_error(&mut self, error: PluginError) -> PluginUpdateLoop {
         self.errors.push(error);
         PluginUpdateLoop::MarkDirty
     }
@@ -209,12 +244,12 @@ impl FuzzySearchContext {
         self.errors.push(PluginError::UnexpectedError(error.into()));
     }
 
-    pub(crate) fn clear_errors(&mut self) -> PluginUpdateLoop {
+    pub(super) fn clear_errors(&mut self) -> PluginUpdateLoop {
         self.errors.clear();
         PluginUpdateLoop::MarkDirty
     }
 
-    pub(crate) fn errors(&self) -> &Vec<PluginError> {
+    pub(super) fn errors(&self) -> &Vec<PluginError> {
         &self.errors
     }
 

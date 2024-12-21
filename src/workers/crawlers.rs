@@ -32,17 +32,12 @@ impl FileSystemWorker {
     }
 
     fn crawl(&mut self, root: &PathBuf, max_depth: usize) -> Result {
-        let message = serialize(&FileSystemWorkerMessage::Crawl)?;
+        let repositories = list_repositories(root, max_depth);
 
-        // NOTE: This is a little silly as we already have the full list of path yet choose to send
-        // them back to the plugin one by one. However, this is "by design" and "temporary", and
-        // the `list_repositories(…)` function will be updated to return an iterator instead.
-        for repository in list_repositories(root, max_depth) {
-            post_message_to_plugin(PluginMessage::new_to_plugin(
-                &message,
-                &serialize(&RepositoryCrawlerResponse { repository })?,
-            ));
-        }
+        post_message_to_plugin(PluginMessage::new_to_plugin(
+            &serialize(&FileSystemWorkerMessage::Crawl)?,
+            &serialize(&RepositoryCrawlerResponse { repositories })?,
+        ));
 
         Ok(())
     }

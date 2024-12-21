@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{collections::BTreeSet, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
 
@@ -17,5 +17,5 @@ pub(crate) struct RepositoryCrawlerRequest {
 /// Response from a worker to a `FileSystemWorkerMessage::Crawl`.
 #[derive(Serialize, Deserialize)]
 pub(crate) struct RepositoryCrawlerResponse {
-    pub repository: PathBuf,
+    pub repositories: BTreeSet<PathBuf>,
 }

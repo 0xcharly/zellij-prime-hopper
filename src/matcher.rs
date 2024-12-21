@@ -1,42 +1,21 @@
-use std::collections::BTreeSet;
-use std::rc::{Rc, Weak};
+use std::rc::Weak;
 
-use fuzzy_matcher::skim::SkimMatcherV2;
-use fuzzy_matcher::FuzzyMatcher as _;
-
-pub trait Choice {
+/// A trait allowing arbitrary data to be matched against the user input.
+pub(super) trait Choice {
     fn repr(&self) -> &str;
 }
 
-pub(crate) struct Match<C: Choice> {
-    pub indices: Vec<usize>,
+/// A match against the user input.
+/// Returned by the matcher and used by the renderer to display the list of matches.
+pub(super) struct Match<C: Choice> {
+    /// A weak reference to the entry.
+    // TODO: Does it make sense to keep a `Weak<C>` here? We're only using `Rc<C>` to keep multiple
+    // references on the source-of-truth instances stored in the `FuzzyFinderContext`, so juggling
+    // between `Weak` and `Rc` seems unnecessary since we expect `Weak`s to always be promotable to
+    // `Rc`s.
     pub choice: Weak<C>,
-}
 
-pub(crate) struct FuzzyMatcher {
-    matcher: SkimMatcherV2,
-}
-
-impl Default for FuzzyMatcher {
-    fn default() -> Self {
-        Self {
-            matcher: SkimMatcherV2::default().use_cache(true),
-        }
-    }
-}
-
-impl FuzzyMatcher {
-    pub(super) fn apply<C: Choice>(&self, input: &str, choices: &BTreeSet<Rc<C>>) -> Vec<Match<C>> {
-        choices
-            .iter()
-            .filter_map(|choice| {
-                self.matcher
-                    .fuzzy_indices(choice.repr(), input)
-                    .map(|(_score, indices)| Match {
-                        indices,
-                        choice: Rc::downgrade(choice),
-                    })
-            })
-            .collect()
-    }
+    /// The list of indices in [Choice::repr()] that matched against the user input.
+    /// Used by the renderer to highlight matches.
+    pub indices: Vec<usize>,
 }
