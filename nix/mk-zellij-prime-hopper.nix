@@ -49,16 +49,16 @@ in
 
     buildPhase = ''
       runHook preBuild
-      cargo build --manifest-path ../Cargo.toml --release --target=wasm32-wasip1
-      cargo build --manifest-path ../find-git-repositories/Cargo.toml --release
+      cargo build --manifest-path $src/Cargo.toml --release --target=wasm32-wasip1
+      cargo build --manifest-path $src/find-git-repositories/Cargo.toml --release
       runHook postBuild
     '';
 
     installPhase =
       ''
         runHook preInstall
-        cargo install --frozen --path .. --root "$out" --target=wasm32-wasip1
-        cargo install --frozen --path ../find-git-repositories --root "$out"
+        cargo install --frozen --path $src --root "$out" --target=wasm32-wasip1
+        cargo install --frozen --path $src/find-git-repositories --root "$out"
       ''
       + lib.optionalString optimize ''
         wasm-opt \
