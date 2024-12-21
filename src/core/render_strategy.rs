@@ -23,6 +23,7 @@ impl PluginUpdateLoop {
     }
 
     /// Short-circuiting `&&` operator for [RenderStrategy].
+    #[allow(dead_code)]
     pub fn and_then<F>(&self, then_fn: F) -> Self
     where
         F: FnOnce() -> Self,

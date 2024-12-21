@@ -1,70 +1,55 @@
 {
   description = "Zellij Prime Hopper plugin devshell";
 
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    rust-overlay.url = "github:oxalica/rust-overlay";
-    flake-utils.url = "github:numtide/flake-utils";
-    treefmt-nix.url = "github:numtide/treefmt-nix";
-  };
+  outputs = inputs @ {flake-parts, ...}:
+    flake-parts.lib.mkFlake {inherit inputs;} {
+      imports = [
+        inputs.flake-parts.flakeModules.easyOverlay
+        inputs.git-hooks-nix.flakeModule
+        inputs.treefmt-nix.flakeModule
 
-  outputs = {
-    nixpkgs,
-    rust-overlay,
-    flake-utils,
-    treefmt-nix,
-    ...
-  }:
-    flake-utils.lib.eachDefaultSystem (
-      system: let
-        overlays = [(import rust-overlay)];
-        pkgs = import nixpkgs {inherit system overlays;};
-        treefmt = treefmt-nix.lib.evalModule pkgs .config/treefmt.nix;
+        ./nix/cmd-fmt.nix
+        ./nix/devshells.nix
+        ./nix/package.nix
+      ];
+
+      systems = ["aarch64-darwin" "aarch64-linux" "x86_64-linux"];
+
+      perSystem = {system, ...}: let
+        isDarwin = system == "aarch64-darwin";
+        nixpkgs =
+          if isDarwin
+          then inputs.nixpkgs-darwin
+          else inputs.nixpkgs;
       in {
-        devShells.default = pkgs.mkShell {
-          buildInputs = [
-            # Support tools.
-            pkgs.just # Command runner
-
-            # Nix tools.
-            pkgs.nixd # LSP
-            pkgs.alejandra # Formatter
-
-            # Markdown tools.
-            pkgs.markdownlint-cli # LSP
-
-            # Rust tools.
-            pkgs.bacon # Diagnostics
-            pkgs.rust-analyzer # LSP
-            (pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml) # Toolchain
-          ];
-
-          formatter = treefmt.config.build.wrapper;
-
-          # Set up pre-commit hooks when user enters the shell.
-          shellHook = let
-            inherit (pkgs) lib;
-            recipes = {
-              fmt = {
-                text = ''${lib.getExe treefmt.config.build.wrapper} --on-unmatched=info'';
-                doc = "Format all files in this directory and its subdirectories.";
-              };
-            };
-            commonJustfile = pkgs.writeTextFile {
-              name = "justfile.incl";
-              text =
-                lib.concatStringsSep "\n"
-                (lib.mapAttrsToList (name: recipe: ''
-                    [doc("${recipe.doc}")]
-                    ${name}:
-                        ${recipe.text}
-                  '')
-                  recipes);
-            };
-          in ''
-            ln -sf ${builtins.toString commonJustfile} ./.justfile.incl
-          '';
+        _module.args.pkgs = import nixpkgs {
+          inherit system;
+          overlays = [inputs.rust-overlay.overlays.default];
         };
-      }
-    );
+      };
+    };
+
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-24.11-darwin";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+
+    # Pure and reproducible packaging of binary distributed rust toolchains.
+    rust-overlay.url = "github:oxalica/rust-overlay";
+
+    # We use flake parts to organize our configurations.
+    flake-parts = {
+      url = "github:hercules-ci/flake-parts";
+      inputs.nixpkgs-lib.follows = "nixpkgs";
+    };
+    git-hooks-nix = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      inputs.nixpkgs-stable.follows = "nixpkgs";
+    };
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
 }

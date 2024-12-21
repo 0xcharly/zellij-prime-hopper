@@ -58,6 +58,7 @@ pub(crate) enum InternalError {
     #[error("unexpected selected index: {0}")]
     SelectionIndexOutOfBounds(usize),
     #[error("unexpected internal state: {0}")]
+    #[allow(dead_code)]
     IllegalState(&'static str),
 }
 

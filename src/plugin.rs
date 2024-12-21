@@ -1,5 +1,5 @@
-use crate::fuzzy_search_context::{FuzzySearchContext, PathEntry};
 use crate::core::{PluginError, PluginUpdateLoop, Result, ResultIterator};
+use crate::fuzzy_search_context::{FuzzySearchContext, PathEntry};
 use crate::hash;
 use crate::protocol::{PathFinderPluginCommand, PathFinderPluginConfig};
 use crate::ui::{Renderer, PANE_TITLE};

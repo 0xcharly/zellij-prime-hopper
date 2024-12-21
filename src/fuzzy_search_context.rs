@@ -82,6 +82,7 @@ pub(crate) struct FuzzySearchContext {
     //
     // Keeping track of the selected match would allow us to move the cursor to the second entry
     // (the one the user manually selected already) instead of leaving it on the third one.
+    #[allow(dead_code)]
     selected_match: Option<Weak<PathEntry>>,
 
     /// Non-fatal errors raised during plugin execution. While non-fatal, some errors may not be

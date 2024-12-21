@@ -3,7 +3,10 @@
 // https://doc.rust-lang.org/std/iter/struct.Intersperse.html
 #![allow(unstable_name_collisions)]
 
-use crate::{fuzzy_search_context::FuzzySearchContext, matcher::{Choice, Match}};
+use crate::{
+    fuzzy_search_context::FuzzySearchContext,
+    matcher::{Choice, Match},
+};
 use std::fmt::{Formatter, Result};
 
 use ansi_term::{
@@ -320,7 +323,11 @@ impl Styles {
         write!(f, "{}", RESET)
     }
 
-    pub(crate) fn fmt_status_bar(&self, f: &mut Formatter<'_>, context: &FuzzySearchContext) -> Result {
+    pub(crate) fn fmt_status_bar(
+        &self,
+        f: &mut Formatter<'_>,
+        context: &FuzzySearchContext,
+    ) -> Result {
         let Some(first_error) = context.errors().first() else {
             return Ok(());
         };

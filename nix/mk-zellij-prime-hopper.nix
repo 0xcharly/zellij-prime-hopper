@@ -7,7 +7,7 @@
   binaryen,
   optimize ? true,
 }: let
-  src = ./.;
+  src = ./..;
   cargoTOML = builtins.fromTOML (builtins.readFile (src + /Cargo.toml));
   inherit (cargoTOML.package) version name;
 
@@ -26,7 +26,7 @@
   rustPlatform = makeRustPlatform {inherit cargo rustc;};
 in
   rustPlatform.buildRustPackage {
-    pname = "zellij-switch-session";
+    pname = "zellij-prime-hopper";
 
     inherit
       cargoLock
@@ -49,16 +49,16 @@ in
 
     buildPhase = ''
       runHook preBuild
-      cargo build --manifest-path ./Cargo.toml --release --target=wasm32-wasip1
-      cargo build --manifest-path ./find-git-repositories/Cargo.toml --release
+      cargo build --manifest-path ../Cargo.toml --release --target=wasm32-wasip1
+      cargo build --manifest-path ../find-git-repositories/Cargo.toml --release
       runHook postBuild
     '';
 
     installPhase =
       ''
         runHook preInstall
-        cargo install --frozen --path . --root "$out" --target=wasm32-wasip1
-        cargo install --frozen --path ./find-git-repositories --root "$out"
+        cargo install --frozen --path .. --root "$out" --target=wasm32-wasip1
+        cargo install --frozen --path ../find-git-repositories --root "$out"
       ''
       + lib.optionalString optimize ''
         wasm-opt \

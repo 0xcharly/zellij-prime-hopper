@@ -7,8 +7,8 @@
 /// of systematically creating new ones.
 use zellij_tile::prelude::*;
 
-mod fuzzy_search_context;
 mod core;
+mod fuzzy_search_context;
 mod hash;
 #[cfg(feature = "zellij_run_command_api")]
 mod marshall_command;
