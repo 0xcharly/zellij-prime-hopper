@@ -57,8 +57,8 @@ in
     installPhase =
       ''
         runHook preInstall
-        cargo install --frozen --path $src --root "$out" --target=wasm32-wasip1
-        cargo install --frozen --path $src/find-git-repositories --root "$out"
+        cargo install --frozen --path . --root "$out" --target=wasm32-wasip1
+        cargo install --frozen --path ./find-git-repositories --root "$out"
       ''
       + lib.optionalString optimize ''
         wasm-opt \
