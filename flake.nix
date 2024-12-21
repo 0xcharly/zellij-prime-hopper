@@ -4,29 +4,14 @@
   outputs = inputs @ {flake-parts, ...}:
     flake-parts.lib.mkFlake {inherit inputs;} {
       imports = [
-        inputs.flake-parts.flakeModules.easyOverlay
-        inputs.git-hooks-nix.flakeModule
-        inputs.treefmt-nix.flakeModule
-
         ./nix/cmd-fmt.nix
         ./nix/devshells.nix
+        ./nix/git-hooks.nix
+        ./nix/overlays.nix
         ./nix/package.nix
       ];
 
       systems = ["aarch64-darwin" "aarch64-linux" "x86_64-linux"];
-
-      perSystem = {system, ...}: let
-        isDarwin = system == "aarch64-darwin";
-        nixpkgs =
-          if isDarwin
-          then inputs.nixpkgs-darwin
-          else inputs.nixpkgs;
-      in {
-        _module.args.pkgs = import nixpkgs {
-          inherit system;
-          overlays = [inputs.rust-overlay.overlays.default];
-        };
-      };
     };
 
   inputs = {

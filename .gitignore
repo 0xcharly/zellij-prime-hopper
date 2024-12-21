@@ -1,2 +1,3 @@
 target/
 .justfile.incl
+.pre-commit-config.yaml

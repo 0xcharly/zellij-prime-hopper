@@ -1,4 +1,6 @@
-{
+{inputs, ...}: {
+  imports = [inputs.treefmt-nix.flakeModule];
+
   perSystem = {...}: {
     treefmt = {
       projectRootFile = "flake.lock";

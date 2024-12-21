@@ -52,6 +52,7 @@
               recipes);
         };
       in ''
+        ${config.pre-commit.installationScript}
         ln -sf ${builtins.toString commonJustfile} ./.justfile.incl
       '';
     };
