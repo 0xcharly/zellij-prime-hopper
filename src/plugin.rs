@@ -256,10 +256,6 @@ impl PrimeHopperPlugin {
             .try_consume()
     }
 
-    fn add_choice(&mut self, path: PathBuf) {
-        self.context.add_choice(path.into());
-    }
-
     #[cfg(not(feature = "zellij_fallback_fs_api"))]
     fn handle_custom_message(&mut self, message: String, payload: String) -> Result {
         use crate::marshall_plugin::deserialize;
@@ -274,9 +270,7 @@ impl PrimeHopperPlugin {
         let RepositoryCrawlerResponse { repository } = deserialize(&payload)
             .with_context(|| "deserializing response from `file_system` worker")?;
 
-        self.add_choice(repository);
-
-        Ok(PluginUpdateLoop::MarkDirty)
+        Ok(self.context.add_choice(repository.into()))
     }
 
     #[cfg(feature = "zellij_fallback_fs_api")]
@@ -287,6 +281,7 @@ impl PrimeHopperPlugin {
                 .unwrap_or(false)
                 && metadata.map(|m| m.is_dir).unwrap_or(false)
         });
+
         if has_dot_git_dir {
             let parent = paths
                 .first()
@@ -299,7 +294,7 @@ impl PrimeHopperPlugin {
                 .expect("path is guaranteed to start with the above prefix")
                 .to_path_buf();
 
-            self.add_choice(parent);
+            Ok(self.context.add_choice(parent.into()))
         } else {
             paths
                 .iter()
@@ -309,9 +304,9 @@ impl PrimeHopperPlugin {
                         .unwrap_or_default()
                 })
                 .for_each(scan_host_folder);
-        }
 
-        Ok(has_dot_git_dir.into())
+            Ok(PluginUpdateLoop::NoUpdates)
+        }
     }
 
     #[cfg(feature = "zellij_run_command_api")]
@@ -351,11 +346,11 @@ impl PrimeHopperPlugin {
                 .into();
         };
 
-        for (repr, path) in paths {
-            self.context.add_choice(PathEntry::new(repr, path));
-        }
-
-        Ok(PluginUpdateLoop::MarkDirty)
+        Ok(self.context.add_choices(
+            paths
+                .into_iter()
+                .map(|(repr, path)| PathEntry::new(repr, path)),
+        ))
     }
 
     fn handle_event(&mut self, event: Event) -> Result {

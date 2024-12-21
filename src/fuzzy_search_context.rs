@@ -175,10 +175,15 @@ impl FuzzySearchContext {
 
     pub fn add_choice(&mut self, choice: PathEntry) -> PluginUpdateLoop {
         self.choices.insert(choice.into());
+        self.invalidate_matches();
 
-        if !self.user_input.is_empty() {
-            self.invalidate_matches();
-        }
+        PluginUpdateLoop::MarkDirty
+    }
+
+    pub fn add_choices(&mut self, choices: impl Iterator<Item = PathEntry>) -> PluginUpdateLoop {
+        self.choices
+            .extend(choices.map(Into::<Rc<PathEntry>>::into));
+        self.invalidate_matches();
 
         PluginUpdateLoop::MarkDirty
     }
