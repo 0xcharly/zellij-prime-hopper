@@ -245,8 +245,12 @@ impl FuzzySearchContext {
     }
 
     pub(super) fn clear_errors(&mut self) -> PluginUpdateLoop {
-        self.errors.clear();
-        PluginUpdateLoop::MarkDirty
+        if self.errors().is_empty() {
+            PluginUpdateLoop::NoUpdates
+        } else {
+            self.errors.clear();
+            PluginUpdateLoop::MarkDirty
+        }
     }
 
     pub(super) fn errors(&self) -> &Vec<PluginError> {
