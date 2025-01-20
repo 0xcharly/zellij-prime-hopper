@@ -297,9 +297,10 @@ impl Styles {
     }
 
     fn fmt_selected_line(&self, f: &mut Formatter<'_>, entry: &str) -> Result {
+        // TODO: Reuse [CATPPUCCIN_SURFACE_BLUE] instead of duplicating the value.
         writeln!(
             f,
-            "{}{entry}\u{1b}[48;2;49;50;68m\u{1b}[0K",
+            "{}{entry}\u{1b}[48;2;32;49;71m\u{1b}[0K",
             self.caret.paint("▌ "),
         )?;
         write!(f, "{}", RESET)
@@ -319,9 +320,10 @@ impl Styles {
         };
 
         // Use ANSI escape sequences manually to fill out the line without repeating spaces.
+        // TODO: Reuse [CATPPUCCIN_MANTLE] instead of duplicating the value.
         writeln!(
             f,
-            "{}\u{1b}[48;2;29;31;33m\u{1b}[0K",
+            "{}\u{1b}[48;2;17;22;29m\u{1b}[0K",
             ANSIStrings(&segments)
         )?;
         write!(f, "{}", RESET)
