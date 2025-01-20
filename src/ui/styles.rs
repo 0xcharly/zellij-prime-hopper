@@ -127,8 +127,9 @@ const CYAN: u8 = 6;
 const WHITE: u8 = 7;
 
 /// The catppuccin "colorscheme" background.
-const CATPPUCCIN_SURFACE_0: Colour = RGB(49, 50, 68);
-const GUNMETAL_BACKGROUND: Colour = RGB(29, 31, 33);
+const CATPPUCCIN_SURFACE_BLUE: Colour = RGB(32, 49, 71);
+const CATPPUCCIN_ON_SURFACE_BLUE: Colour = RGB(159, 205, 254);
+const CATPPUCCIN_MANTLE: Colour = RGB(17, 22, 29);
 
 impl Default for Styles {
     fn default() -> Self {
@@ -142,20 +143,23 @@ impl Default for Styles {
             separator: Style::new().fg(Fixed(CYAN)),
             matched: Style::new().fg(Fixed(MAGENTA)).underline(),
             selected: Style::new()
-                .fg(Fixed(WHITE))
-                .on(CATPPUCCIN_SURFACE_0)
+                .fg(CATPPUCCIN_ON_SURFACE_BLUE)
+                .on(CATPPUCCIN_SURFACE_BLUE)
                 .bold(),
             selected_and_matched: Style::new()
-                .fg(Fixed(MAGENTA))
+                .fg(CATPPUCCIN_ON_SURFACE_BLUE)
+                .on(CATPPUCCIN_SURFACE_BLUE)
                 .underline()
-                .on(Fixed(GREY))
                 .bold(),
             ellipsized: Style::new().dimmed(),
-            selected_and_ellipsized: Style::new().dimmed().on(CATPPUCCIN_SURFACE_0),
+            selected_and_ellipsized: Style::new()
+                .dimmed()
+                .fg(CATPPUCCIN_ON_SURFACE_BLUE)
+                .on(CATPPUCCIN_SURFACE_BLUE),
 
-            control_background: Style::new().on(GUNMETAL_BACKGROUND),
-            control_keycode: Style::new().fg(Fixed(GREEN)).on(GUNMETAL_BACKGROUND).bold(),
-            control_label: Style::new().on(GUNMETAL_BACKGROUND).bold(),
+            control_background: Style::new().on(CATPPUCCIN_MANTLE),
+            control_keycode: Style::new().fg(Fixed(GREEN)).on(CATPPUCCIN_MANTLE).bold(),
+            control_label: Style::new().on(CATPPUCCIN_MANTLE).bold(),
         }
     }
 }
