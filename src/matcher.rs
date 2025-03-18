@@ -18,4 +18,7 @@ pub(super) struct Match<C: Choice> {
     /// The list of indices in [Choice::repr()] that matched against the user input.
     /// Used by the renderer to highlight matches.
     pub indices: Vec<usize>,
+
+    /// The score of the match.
+    pub score: i64,
 }

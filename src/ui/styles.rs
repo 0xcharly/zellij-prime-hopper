@@ -213,7 +213,11 @@ impl Styles {
         cols: usize,
     ) -> Result {
         let mut ch_buf = [0u8; 4];
-        for (index, m) in matched_results.take(rows).enumerate() {
+        for (index, m) in matched_results
+            .sorted_by(|lhs, rhs| rhs.score.cmp(&lhs.score))
+            .take(rows)
+            .enumerate()
+        {
             self.fmt_matched_line(f, &mut ch_buf, m, index == selected_index, cols)?;
         }
 

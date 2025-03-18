@@ -66,9 +66,10 @@ impl FuzzyMatcher {
             .filter_map(|choice| {
                 self.matcher
                     .fuzzy_indices(choice.repr(), input)
-                    .map(|(_score, indices)| Match {
+                    .map(|(score, indices)| Match {
                         indices,
                         choice: Rc::downgrade(choice),
+                        score,
                     })
             })
             .collect()
