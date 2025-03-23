@@ -23,11 +23,13 @@ pub(super) struct PathFinderPluginConfig {
 // Configuration.
 
 /// See https://zellij.dev/documentation/plugin-aliases.html?highlight=caller#a-note-about-cwd.
+const BUILTIN_LAYOUT_OPTION: &'static str = "builtin_layout";
 const REPOSITORY_PATHFINDER_ROOT_OPTION: &'static str = "repository_pathfinder_root";
 const EXTERNAL_PATHFINDER_COMMAND_OPTION: &'static str = "pathfinder_command";
 
 impl PathFinderPluginConfig {
     pub(super) fn load(&mut self, configuration: &BTreeMap<String, String>) {
+        self.layout = parse_layout(&configuration.get(BUILTIN_LAYOUT_OPTION));
         self.pathfinder_root = configuration
             .get(REPOSITORY_PATHFINDER_ROOT_OPTION)
             .map(PathBuf::from);
@@ -37,6 +39,28 @@ impl PathFinderPluginConfig {
 
         self.pipe_message = synthesize_pipe_message(configuration);
         self.kill_after_switch = self.pipe_message.is_some();
+    }
+}
+
+/// The default builtin layout to use if the configuration does not specify one.
+const DEFAULT_BUILTIN_LAYOUT: &'static str = "default";
+
+/// Parses the configuration and determines the layout to use.
+/// If the configuration does not specify a layout, the default builtin layout is used.
+/// If the configuration specifies an unknown layout, the default builtin layout is used.
+fn parse_layout(layout: &Option<&String>) -> LayoutInfo {
+    let Some(layout) = layout else {
+        return LayoutInfo::BuiltIn(DEFAULT_BUILTIN_LAYOUT.to_string());
+    };
+    let Some((scheme, name)) = layout.split_once(':') else {
+        return LayoutInfo::BuiltIn(DEFAULT_BUILTIN_LAYOUT.to_string());
+    };
+    match scheme {
+        "builtin" => LayoutInfo::BuiltIn(name.to_string()),
+        "file" => LayoutInfo::File(name.to_string()),
+        "stringified" => LayoutInfo::Stringified(name.to_string()),
+        "url" => LayoutInfo::Url(name.to_string()),
+        _ => LayoutInfo::BuiltIn(DEFAULT_BUILTIN_LAYOUT.to_string()),
     }
 }
 

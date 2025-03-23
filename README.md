@@ -1,6 +1,6 @@
-## zellij-prime-hopper
+# zellij-prime-hopper
 
-**Zellij Plugin for Fuzzy Directory Search and Session Switching**
+Zellij Plugin for Fuzzy Directory Search and Session Switching.
 
 zellij-prime-hopper is a Zellij plugin inspired by Primeagen's sessionizer script. It allows you to:
 
@@ -10,12 +10,12 @@ zellij-prime-hopper is a Zellij plugin inspired by Primeagen's sessionizer scrip
 
 This plugin makes it easy to navigate your project directories and manage multiple Zellij sessions with ease.
 
-### Features
+## Features
 
 - Fuzzy search for directories across all sessions.
 - Option to open a new session or switch to an existing one.
 
-### Usage
+## Usage
 
 1. Launch the plugin.
 1. Start typing the name of the directory you want to find.
@@ -24,7 +24,7 @@ This plugin makes it easy to navigate your project directories and manage multip
    - Open a new session with the selected directory.
    - Switch to an existing session with the selected directory.
 
-### Keybindings
+## Keybindings
 
 The following keybindings are available in the search interface:
 
@@ -32,6 +32,6 @@ The following keybindings are available in the search interface:
 - `Enter`: Select the currently highlighted result.
 - `Ctrl+C` or `Esc`: Close the search interface.
 
-### License
+## License
 
 This project is licensed under the MIT License. See the `LICENSE` file for details.
