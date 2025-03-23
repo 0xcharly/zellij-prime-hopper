@@ -23,13 +23,13 @@ pub(super) struct PathFinderPluginConfig {
 // Configuration.
 
 /// See https://zellij.dev/documentation/plugin-aliases.html?highlight=caller#a-note-about-cwd.
-const BUILTIN_LAYOUT_OPTION: &'static str = "builtin_layout";
+const LAYOUT_OPTION: &'static str = "layout";
 const REPOSITORY_PATHFINDER_ROOT_OPTION: &'static str = "repository_pathfinder_root";
 const EXTERNAL_PATHFINDER_COMMAND_OPTION: &'static str = "pathfinder_command";
 
 impl PathFinderPluginConfig {
     pub(super) fn load(&mut self, configuration: &BTreeMap<String, String>) {
-        self.layout = parse_layout(&configuration.get(BUILTIN_LAYOUT_OPTION));
+        self.layout = parse_layout(&configuration.get(LAYOUT_OPTION));
         self.pathfinder_root = configuration
             .get(REPOSITORY_PATHFINDER_ROOT_OPTION)
             .map(PathBuf::from);
