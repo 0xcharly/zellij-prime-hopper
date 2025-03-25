@@ -11,6 +11,7 @@ use std::{
 
 use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher as _;
+use itertools::Itertools;
 
 #[derive(Default, Eq, Ord, PartialEq, PartialOrd)]
 pub(super) struct PathEntry {
@@ -66,12 +67,18 @@ impl FuzzyMatcher {
             .filter_map(|choice| {
                 self.matcher
                     .fuzzy_indices(choice.repr(), input)
-                    .map(|(score, indices)| Match {
-                        indices,
-                        choice: Rc::downgrade(choice),
-                        score,
+                    .map(|(score, indices)| {
+                        (
+                            score,
+                            Match {
+                                indices,
+                                choice: Rc::downgrade(choice),
+                            },
+                        )
                     })
             })
+            .sorted_by(|(lscore, _lhs), (rscore, _rhs)| rscore.cmp(lscore))
+            .map(|(_, m)| m)
             .collect()
     }
 }
