@@ -9,12 +9,13 @@ use zellij_tile::{
 // This structure mostly exists because `LayoutInfo` doesn't implement the `Default` trait.
 #[derive(Debug)]
 pub(super) struct PathFinderPluginConfig {
+    /// Layout to load new sessions into. Defaults to the builtin `default` layout.
     pub(super) layout: LayoutInfo,
-    pub(super) pathfinder_root: Option<PathBuf>,
-    pub(super) external_pathfinder_command: Option<PathBuf>,
 
-    /// Synthesized from the plugin startup configuration if it contains a `name` key.
+    /// Synthesized from the plugin startup configuration if it contains a `startup_message_name`
+    /// key.
     pub(super) pipe_message: Option<PipeMessage>,
+
     /// Whether to automatically kill the session after switching.
     /// This is set to `true` in [PathFinderPluginConfig.load] if `pipe_message` is not `None`.
     pub(super) kill_after_switch: bool,
@@ -24,19 +25,10 @@ pub(super) struct PathFinderPluginConfig {
 
 /// See https://zellij.dev/documentation/plugin-aliases.html?highlight=caller#a-note-about-cwd.
 const LAYOUT_OPTION: &'static str = "layout";
-const REPOSITORY_PATHFINDER_ROOT_OPTION: &'static str = "repository_pathfinder_root";
-const EXTERNAL_PATHFINDER_COMMAND_OPTION: &'static str = "pathfinder_command";
 
 impl PathFinderPluginConfig {
     pub(super) fn load(&mut self, configuration: &BTreeMap<String, String>) {
         self.layout = parse_layout(&configuration.get(LAYOUT_OPTION));
-        self.pathfinder_root = configuration
-            .get(REPOSITORY_PATHFINDER_ROOT_OPTION)
-            .map(PathBuf::from);
-        self.external_pathfinder_command = configuration
-            .get(EXTERNAL_PATHFINDER_COMMAND_OPTION)
-            .map(PathBuf::from);
-
         self.pipe_message = synthesize_pipe_message(configuration);
         self.kill_after_switch = self.pipe_message.is_some();
     }
@@ -89,8 +81,6 @@ impl Default for PathFinderPluginConfig {
     fn default() -> Self {
         Self {
             layout: LayoutInfo::BuiltIn("default".to_string()),
-            pathfinder_root: Default::default(),
-            external_pathfinder_command: Default::default(),
             pipe_message: Default::default(),
             kill_after_switch: false,
         }
@@ -105,7 +95,7 @@ impl Default for PathFinderPluginConfig {
 /// ```kdl
 /// MessagePlugin "pathfinder" {
 ///   cwd "/path/to/root/to/scan"
-///   name "scan_repository_root"
+///   startup_message_name "scan_repository_root"
 ///   launch_new true
 /// }
 /// ```
@@ -120,8 +110,8 @@ const PATHFINDER_COMMAND_SCAN_REPOSITORY_ROOT: &'static str = "scan_repository_r
 ///
 /// ```kdl
 /// MessagePlugin "pathfinder" {
-///   name "run_external_program"
-///   payload "/path/to/program/to/run"
+///   startup_message_name "run_external_program"
+///   startup_message_payload "/path/to/program/to/run"
 /// }
 /// ```
 const PATHFINDER_COMMAND_RUN_EXTERNAL_PROGRAM: &'static str = "run_external_program";
