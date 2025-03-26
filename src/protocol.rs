@@ -120,7 +120,7 @@ const PATHFINDER_COMMAND_RUN_EXTERNAL_PROGRAM: &'static str = "run_external_prog
 pub(super) enum PathFinderPluginCommand {
     PluginCommandError(PluginError),
     ScanRepositoryRoot { max_depth: usize },
-    RunExternalProgram { program: PathBuf },
+    RunExternalProgram { programs: Vec<PathBuf> },
 }
 
 impl From<PipeMessage> for PathFinderPluginCommand {
@@ -168,7 +168,98 @@ fn parse_run_external_program_payload(
         );
     };
 
-    let program = PathBuf::from(payload);
+    let programs = payload.split(":").map(PathBuf::from).collect();
 
-    PathFinderPluginCommand::RunExternalProgram { program }
+    PathFinderPluginCommand::RunExternalProgram { programs }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_run_external_program_payload_no_payload() {
+        let message = PipeMessage {
+            source: PipeSource::Plugin(0),
+            name: PATHFINDER_COMMAND_RUN_EXTERNAL_PROGRAM.to_string(),
+            payload: None,
+            args: Default::default(),
+            is_private: true,
+        };
+
+        let command = PathFinderPluginCommand::from(message);
+
+        assert!(matches!(
+            command,
+            PathFinderPluginCommand::PluginCommandError(
+                PluginError::MissingPipeMessagePayloadError(name)
+            ) if name == PATHFINDER_COMMAND_RUN_EXTERNAL_PROGRAM
+        ));
+    }
+
+    #[test]
+    fn parse_run_external_program_payload_empty_payload() {
+        let message = PipeMessage {
+            source: PipeSource::Plugin(0),
+            name: PATHFINDER_COMMAND_RUN_EXTERNAL_PROGRAM.to_string(),
+            payload: Some("".to_string()),
+            args: Default::default(),
+            is_private: true,
+        };
+
+        let command = PathFinderPluginCommand::from(message);
+
+        assert!(matches!(
+            command,
+            PathFinderPluginCommand::RunExternalProgram { programs: _ }
+        ));
+
+        assert!(
+            matches!(command, PathFinderPluginCommand::RunExternalProgram { programs } if programs.is_empty())
+        );
+    }
+
+    #[test]
+    fn parse_run_external_program_payload_single_program() {
+        let message = PipeMessage {
+            source: PipeSource::Plugin(0),
+            name: PATHFINDER_COMMAND_RUN_EXTERNAL_PROGRAM.to_string(),
+            payload: Some("/path/to/program".to_string()),
+            args: Default::default(),
+            is_private: true,
+        };
+
+        let command = PathFinderPluginCommand::from(message);
+
+        assert!(matches!(
+            command,
+            PathFinderPluginCommand::RunExternalProgram {
+                programs
+            } if programs == vec![PathBuf::from("/path/to/program")]
+        ));
+    }
+
+    #[test]
+    fn parse_run_external_program_payload_multiple_programs() {
+        let message = PipeMessage {
+            source: PipeSource::Plugin(0),
+            name: PATHFINDER_COMMAND_RUN_EXTERNAL_PROGRAM.to_string(),
+            payload: Some("/path/to/program1:/path/to/program2".to_string()),
+            args: Default::default(),
+            is_private: true,
+        };
+
+        let command = PathFinderPluginCommand::from(message);
+
+        assert!(matches!(
+            command,
+            PathFinderPluginCommand::RunExternalProgram {
+                programs
+        } if programs == vec![
+                    PathBuf::from("/path/to/program1"),
+                    PathBuf::from("/path/to/program2")
+                ]
+
+        ));
+    }
 }

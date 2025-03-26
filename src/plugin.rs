@@ -163,10 +163,15 @@ impl PrimeHopperPlugin {
             // dictated by the `zellij_fallback_fs_api` feature flag.
             ScanRepositoryRoot { max_depth } => self.start_async_root_scan(max_depth),
 
-            // Run an external command to get the list of path. While the command execution is
-            // asynchronous from the plugin point of view, the results are sent back to the plugin
-            // only when the command terminates, which can take an unbounded amount of time.
-            RunExternalProgram { program } => self.run_external_pathfinder_command(program),
+            // Run one or more external commands to get the list of path. While the command
+            // execution is asynchronous from the plugin point of view, the results are sent back
+            // to the plugin only when the command terminates, which can take an unbounded amount
+            // of time.
+            // Stop spawning new commands if one of them fails.
+            RunExternalProgram { programs } => programs
+                .into_iter()
+                .map(|program| self.run_external_pathfinder_command(program))
+                .collect(),
 
             PluginCommandError(error) => Err(error.into()),
         };

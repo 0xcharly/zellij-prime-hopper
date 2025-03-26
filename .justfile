@@ -41,6 +41,10 @@ launch:
 build *flavor="":
     cargo build --target=wasm32-wasip1 {{ flavor }}
 
+[group('dev')]
+test:
+    cargo test --target=wasm32-wasip1
+
 [doc('Run pre-commit checks on all files')]
 [group('devshell')]
 fix:
