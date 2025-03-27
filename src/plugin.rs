@@ -170,7 +170,10 @@ impl PrimeHopperPlugin {
             // Stop spawning new commands if one of them fails.
             RunExternalProgram { programs } => programs
                 .into_iter()
-                .map(|program| self.run_external_pathfinder_command(program))
+                .map(|program| {
+                    eprintln!("Spawning process: {program:?}");
+                    self.run_external_pathfinder_command(program)
+                })
                 .collect(),
 
             PluginCommandError(error) => Err(error.into()),
