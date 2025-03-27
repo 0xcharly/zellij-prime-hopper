@@ -337,7 +337,7 @@ impl PrimeHopperPlugin {
             return self
                 .context
                 .log_error(PluginError::FileSystemScanFailed(anyhow!(
-                    "`external_pathfinder_command` failed with exitcode {exitcode}"
+                    "`external_pathfinder_command` failed with exitcode {exitcode}: {stderr:?}"
                 )))
                 .into();
         }
