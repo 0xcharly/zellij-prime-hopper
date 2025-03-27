@@ -323,6 +323,8 @@ impl PrimeHopperPlugin {
         stdout: Vec<u8>,
         stderr: Vec<u8>,
     ) -> Result {
+        use core::str;
+
         use crate::marshall_command;
 
         let Some(exitcode) = exitcode else {
@@ -334,6 +336,7 @@ impl PrimeHopperPlugin {
                 .into();
         };
         if exitcode != 0 {
+            let stderr = str::from_utf8(&stderr).unwrap_or("failed to decode program output");
             return self
                 .context
                 .log_error(PluginError::FileSystemScanFailed(anyhow!(
